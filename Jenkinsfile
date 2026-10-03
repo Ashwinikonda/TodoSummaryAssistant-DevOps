@@ -25,5 +25,26 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t todo-backend:ci Backend/todo-summary-assistant'
+                sh 'docker build -t todo-frontend:ci Frontend/todo'
+            }
+        }
+
+        stage('Tag Images') {
+            steps {
+                script {
+                    def commit = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    sh "docker tag todo-backend:ci ashwiniskonda/todo-summary-backend:${commit}"
+                    sh "docker tag todo-frontend:ci ashwiniskonda/todo-summary-frontend:${commit}"
+                }
+            }
+        }
+
     }
 }
