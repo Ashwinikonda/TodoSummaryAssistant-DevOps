@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: todo-backend
+  labels:
+    app: todo-backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: todo-backend
+
+  template:
+    metadata:
+      labels:
+        app: todo-backend
+
+    spec:
+      containers:
+        - name: todo-backend
+          image: ashwiniskonda/todo-summary-backend:bca789b
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://todo-mysql:3306/todo_db
+
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: DB_USERNAME
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: DB_PASSWORD
+
+            - name: COHERE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: COHERE_API_KEY
+
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: SLACK_WEBHOOK_URL
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+          readinessProbe:
+            httpGet:
+              path: /api/todos
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /api/todos
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

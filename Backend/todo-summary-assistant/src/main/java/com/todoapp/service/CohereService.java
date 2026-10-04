@@ -2,6 +2,7 @@ package com.todoapp.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,17 +26,26 @@ public class CohereService {
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
+
         this.objectMapper = new ObjectMapper();
     }
 
     public String summarizeText(String text) throws IOException {
-        String url = "https://api.cohere.ai/v1/summarize"; // Check Cohere's latest API endpoint
+
+        String url = "https://api.cohere.ai/v2/chat";
 
         ObjectNode requestBodyJson = objectMapper.createObjectNode();
-        requestBodyJson.put("text", text);
-        requestBodyJson.put("length", "long"); // "short", "medium", "long"
-        requestBodyJson.put("format", "paragraph"); // "paragraph", "bullets"
-        requestBodyJson.put("model", "command"); // Or "command-light"
+
+        requestBodyJson.put("model", "command-a-plus-05-2026");
+
+        ArrayNode messages = requestBodyJson.putArray("messages");
+
+        ObjectNode message = messages.addObject();
+        message.put("role", "user");
+        message.put(
+                "content",
+                "Summarize the following pending Todo items briefly and clearly:\n\n" + text
+        );
 
         RequestBody body = RequestBody.create(
                 requestBodyJson.toString(),
@@ -50,12 +60,29 @@ public class CohereService {
                 .build();
 
         try (Response response = httpClient.newCall(request).execute()) {
+
+            String responseBody = response.body() != null
+                    ? response.body().string()
+                    : "";
+
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response + " Body: " + response.body().string());
+                throw new IOException(
+                        "Unexpected code " + response.code()
+                                + " Body: " + responseBody
+                );
             }
-            String responseBody = response.body().string();
+
             JsonNode jsonNode = objectMapper.readTree(responseBody);
-            return jsonNode.has("summary") ? jsonNode.get("summary").asText() : "No summary found.";
+
+            JsonNode content = jsonNode
+                    .path("message")
+                    .path("content");
+
+            if (content.isArray() && !content.isEmpty()) {
+                return content.get(0).path("text").asText();
+            }
+
+            return "No summary found.";
         }
     }
 }

@@ -68,3 +68,30 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+## Docker Design Choices
+
+### Multi-stage builds
+- Backend uses Maven in the build stage and Java 17 JRE in the runtime stage.
+- Frontend uses Node.js to build the React application and Nginx to serve the final files.
+- This keeps build tools out of the final runtime images.
+
+### Non-root containers
+- Backend runs using a separate `appuser` instead of root.
+- Frontend uses the `nginx-unprivileged` image.
+- This reduces the privileges available to the application containers.
+
+### Externalized configuration
+- Database connection details are provided through environment variables.
+- Cohere API key and Slack webhook are also provided through environment variables.
+- Secrets are not hardcoded into the Dockerfile.
+
+### Image size optimization
+- Backend uses a JRE-only runtime image instead of the Maven build image.
+- Frontend contains only the generated React files and Nginx.
+- Multi-stage builds remove unnecessary build dependencies from the final images.
+
+### .dockerignore
+- Unnecessary files such as `node_modules`, build output, `.git`, `.env` and log files are excluded where appropriate.
+- This reduces the Docker build context and prevents unnecessary files from being included.
