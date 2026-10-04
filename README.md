@@ -47,7 +47,7 @@ A full-stack application to manage personal to-do items, summarize pending tasks
 1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/your-username/todo-summary-assistant.git](https://github.com/your-username/todo-summary-assistant.git)
-    cd todo-summary-assistant/backend
+    cd Backend/todo-summary-assistant
     ```
 2.  **Configure `application.properties`:**
     Open `src/main/resources/application.properties` and update the following:
@@ -60,8 +60,8 @@ A full-stack application to manage personal to-do items, summarize pending tasks
     ```
 3.  **Build and Run:**
     ```bash
-    mvn clean install
-    mvn spring-boot:run
+    ./mvnw clean package
+    ./mvnw spring-boot:run
     ```
     The backend will start on `http://localhost:8080`.
 
@@ -69,7 +69,7 @@ A full-stack application to manage personal to-do items, summarize pending tasks
 
 1.  **Navigate to the frontend directory:**
     ```bash
-    cd ../frontend
+    cd Frontend/todo
     ```
 2.  **Install dependencies:**
     ```bash
@@ -124,3 +124,61 @@ A full-stack application to manage personal to-do items, summarize pending tasks
 ![Screenshot (1144)](https://github.com/user-attachments/assets/474b1a46-36c8-4407-8bf9-a46ca911603b)
 
 ![Screenshot (1143)](https://github.com/user-attachments/assets/1e9f8783-d0df-42ce-a3f8-ec7ca5e7c078)
+
+## Assumptions
+
+- Java 17 is used for the Spring Boot backend.
+- MySQL is available on port 3306 during local development.
+- The backend runs on port 8080.
+- The React frontend runs on port 3000.
+- Cohere API credentials are needed for the summarization feature.
+- A Slack Incoming Webhook URL is required for Slack integration.
+- Database and external API credentials must be supplied through local configuration and should not be committed as secrets.
+
+## Dependencies
+
+### Development Environment
+
+- Git
+- Java JDK 17
+- Maven Wrapper
+- Node.js
+- npm
+- Docker
+- MySQL
+
+### Application Dependencies
+
+#### Frontend
+
+- React
+- React DOM
+- Axios
+- React Router
+- React Icons
+- React Scripts
+
+#### Backend
+
+- Spring Boot
+- Spring Data JPA
+- Hibernate
+- MySQL Connector
+- Lombok
+- OkHttp
+- Jackson
+
+#### External Services
+
+- Cohere API
+- Slack Incoming Webhook
+
+#### The Jenkins pipeline automates the main CI process whenever changes are pushed to the Git repository.
+
+- Checkout: Jenkins gets the latest code from GitHub.
+- Maven Test: The backend is built and the available tests are executed.
+- Docker Build: Docker images are created for both the backend and frontend.
+- Tag Images: Images are tagged using the Git commit ID so each image can be linked to a specific code version.
+- Docker Push: The tagged images are pushed to Docker Hub using Jenkins credentials.
+
+The pipeline is configured to poll the Git repository for changes. If a new commit is detected, Jenkins automatically starts the pipeline.
