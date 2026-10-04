@@ -40,8 +40,31 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
+                    env.IMAGE_TAG = commit
+
                     sh "docker tag todo-backend:ci ashwiniskonda/todo-summary-backend:${commit}"
                     sh "docker tag todo-frontend:ci ashwiniskonda/todo-summary-frontend:${commit}"
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+                        docker push ashwiniskonda/todo-summary-backend:${IMAGE_TAG}
+                        docker push ashwiniskonda/todo-summary-frontend:${IMAGE_TAG}
+
+                        docker logout
+                    '''
                 }
             }
         }
