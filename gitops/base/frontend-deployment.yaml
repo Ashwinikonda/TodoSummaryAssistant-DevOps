@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: todo-frontend
-          image: ashwiniskonda/todo-summary-frontend:bca789b
+          image: ashwiniskonda/todo-summary-frontend:b2fa255
 
           ports:
             - containerPort: 8080
